@@ -1,10 +1,12 @@
-use sds011::SDS011;
 use std::sync::{Arc, Mutex};
 use std::{
     thread,
     thread::sleep
 };
 use std::time::Duration;
+use sds011::SDS011;
+use crate::collector;
+use crate::utils;
 
 mod error;
 
@@ -67,11 +69,20 @@ pub fn run_sensor(lap: Arc<Mutex<i32>>) -> Result<(), error::SensorError> {
 /// * `mut sensor`- SDS011
 /// * `lap` - Arc<Mutex<i32>>
 fn get_data_from_sensor(mut sensor: SDS011, lap: Arc<Mutex<i32>>) -> Result<(), error::SensorError> {
+    let env = utils::load_env()?;
     let handle = thread::spawn(move || {
         println!("Listening the sensor...");
         loop {
             match sensor.query() {
-                Ok(res) => println!("{:?}", res),
+                Ok(res) => {
+                    if let Err(err) = collector::push_prometheus_pm25(res.pm25, &env) {
+                        println!("Error while sending pm2.5: {:?}", err);
+                    }
+
+                    if let Err(err) = collector::push_prometheus_pm10(res.pm10) {
+                        println!("Error while sending pm10: {:?}", err);
+                    }
+                },
                 Err(err) => panic!("{}", error::SensorError::from(err).to_string())
             };
 

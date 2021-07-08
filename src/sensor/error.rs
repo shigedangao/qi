@@ -45,3 +45,9 @@ impl From<SendError<Message>> for SensorError {
         SensorError::SendThreadError(err.to_string())
     }
 }
+
+impl From<Box<dyn std::error::Error>> for SensorError {
+    fn from(err: Box<dyn std::error::Error>) -> Self {
+        SensorError::RuntimeError(err.to_string())
+    }
+}

@@ -1,6 +1,8 @@
 use std::sync::{Arc, Mutex};
 
 mod sensor;
+mod collector;
+mod utils;
 
 fn main() {
     let lap = Arc::new(Mutex::new(0));
