@@ -1,41 +1,28 @@
-use prometheus::{Opts, Gauge, labels};
-use crate::utils::Env;
+use prometheus_exporter::prometheus::register_gauge;
+use prometheus::Gauge;
+use crate::utils;
 
-mod error;
-
-/// Push Prometheus Pm25
+/// Bootstrap the prometheus exporter
 ///
 /// # Description
-/// Push the SD101 pm2.5 value to prometheus by using the push metrics feature
-///
-/// # Arguments
-/// * `pm25` - f32
-/// * `env` - &Env
-pub fn push_prometheus_pm25(pm25: f32, env: &Env) -> Result<(), error::CollectorError> {
-    let gauge_opts = Opts::new("pm2.5", "pm2.5 gauge")
-        .const_label("value", "1");
-    let gauge = Gauge::with_opts(gauge_opts)?;
+/// Create a prometheus exporter instance which will listen to metrics created
+pub fn bootstrap() -> Result<(Gauge, Gauge), Box<dyn std::error::Error>> {
+    debug!("Initializing prometheus exporter");
 
-    gauge.set(pm25 as f64);
-    prometheus::push_metrics(
-        "push pm2.5",
-        labels! {"instance".to_owned() => "qi".to_owned(), },
-        &env.host,
-        prometheus::gather(),
-        Some(prometheus::BasicAuthentication {
-            username: env.username.to_owned(),
-            password: env.password.to_owned()
-        }))?;
-
-    Ok(())
+    let env = utils::load_env()?;
+    prometheus_exporter::start(env.host.parse().unwrap())?;
+    create_gauge()
 }
 
-pub fn push_prometheus_pm10(pm10: f32) -> Result<(), error::CollectorError> {
-    let gauge_opts = Opts::new("pm10", "pm10 gauge")
-        .const_label("value", "1");
+/// Create Gauge 
+///
+/// # Description
+/// Create the gauge which will be updated later
+fn create_gauge() -> Result<(Gauge, Gauge), Box<dyn std::error::Error>> {
+    debug!("Create prometheus probe");
 
-    let gauge = Gauge::with_opts(gauge_opts)?;
-    gauge.set(pm10 as f64);
+    let pm25 = register_gauge!("particle_pm25", "set particle pm25")?;
+    let pm10 = register_gauge!("particle_pm10", "set particle pm10")?;
 
-    Ok(())
+    Ok((pm25, pm10))
 }

@@ -5,24 +5,21 @@ use std::{
 };
 use std::time::Duration;
 use sds011::SDS011;
-use crate::collector;
-use crate::utils;
+use prometheus::Gauge;
 
 mod error;
 
 // Constant
 const SENSOR_PORT: &str = "/dev/ttyUSB0";
-const SLEEP_DURATION: u64 = 60;
+const SLEEP_DURATION: u64 = 30;
 const MAX_LAP: i32 = 10;
 
 /// Run Sensor
 ///
 /// # Description
 /// Run the sensor in a loop
-pub fn run_sensor(lap: Arc<Mutex<i32>>) -> Result<(), error::SensorError> {
-    println!("Starting sensor...");
-
-    // @TODO consider if we should use a lock or just pass a mut struct
+pub fn run_sensor(lap: Arc<Mutex<i32>>, gauges: &(Gauge, Gauge)) -> Result<(), error::SensorError> {
+    debug!("Starting to listen to sensor");
     if let Ok(guard) = lap.lock() {
         if *guard > MAX_LAP {
             return Err(error::SensorError::MaxLapAchieved);
@@ -30,35 +27,10 @@ pub fn run_sensor(lap: Arc<Mutex<i32>>) -> Result<(), error::SensorError> {
     }
 
     match SDS011::new(SENSOR_PORT) {
-        Ok(sensor) => get_data_from_sensor(sensor, lap),
+        Ok(sensor) => get_data_from_sensor(sensor, lap, &gauges),
         Err(err) => Err(error::SensorError::from(err))
     }
 }
-
-// @TODO Included in test unit maybe ?
-// fn dummy_handler(lap: Arc<Mutex<i32>>) -> Result<(), error::SensorError> {
-//     let handle = thread::spawn(move || {
-//         println!("Listening the sensor...");
-//         loop {
-//             // sleep the thread for a just a few 
-//             println!("la");
-//             sleep(Duration::from_secs(1));
-//             panic!("lol");
-//         }
-//     });
-
-//     if let Err(err) = handle.join() {
-//         // re-run the thread if limit has not been achieved
-//         println!("well {:?}", err);
-//         if let Ok(mut guard) = lap.lock() {
-//             *guard += 1;
-//         }
-
-//         run_sensor(lap)?;
-//     }
-
-//     Ok(())
-//}
 
 /// Get Data From Sensor
 ///
@@ -68,37 +40,32 @@ pub fn run_sensor(lap: Arc<Mutex<i32>>) -> Result<(), error::SensorError> {
 /// # Arguments
 /// * `mut sensor`- SDS011
 /// * `lap` - Arc<Mutex<i32>>
-fn get_data_from_sensor(mut sensor: SDS011, lap: Arc<Mutex<i32>>) -> Result<(), error::SensorError> {
-    let env = utils::load_env()?;
+fn get_data_from_sensor(mut sensor: SDS011, lap: Arc<Mutex<i32>>, gauges: &(Gauge, Gauge)) -> Result<(), error::SensorError> {
+    let gauges_clone = gauges.clone();
     let handle = thread::spawn(move || {
-        println!("Listening the sensor...");
+        debug!("Listening to sensor in thread");
         loop {
             match sensor.query() {
                 Ok(res) => {
-                    if let Err(err) = collector::push_prometheus_pm25(res.pm25, &env) {
-                        println!("Error while sending pm2.5: {:?}", err);
-                    }
-
-                    if let Err(err) = collector::push_prometheus_pm10(res.pm10) {
-                        println!("Error while sending pm10: {:?}", err);
-                    }
+                    let (pm25, pm10) = gauges_clone.clone();
+                    pm25.set(res.pm25 as f64);
+                    pm10.set(res.pm10 as f64);
                 },
                 Err(err) => panic!("{}", error::SensorError::from(err).to_string())
             };
 
-            // sleep the thread for a just a few 
+            // sleep the thread for 30s
             sleep(Duration::from_secs(SLEEP_DURATION));
         }
     });
 
     if let Err(err) = handle.join() {
-        // re-run the thread if limit has not been achieved
-        println!("{:?}", err);
+        error!("Sensor listener crashed trace: {:?}", err);
         if let Ok(mut guard) = lap.lock() {
             *guard += 1;
         }
 
-        run_sensor(lap)?;
+        run_sensor(lap, gauges)?;
     }
 
     Ok(())
