@@ -11,7 +11,8 @@ use sds011::{
 pub enum SensorError {
     StartupError,
     RuntimeError(String),
-    SendThreadError(String)
+    SendThreadError(String),
+    MaxLapAchieved
 }
 
 impl std::error::Error for SensorError {}
@@ -21,7 +22,8 @@ impl fmt::Display for SensorError {
         match self {
             SensorError::StartupError => write!(f, "An error during the startup of the sensor"),
             SensorError::RuntimeError(err) => write!(f, "An error occurred while collecting datas from the senso: {}", err) ,
-            SensorError::SendThreadError(err) => write!(f, "Error while sending data from collecting sensor thread: {}", err)
+            SensorError::SendThreadError(err) => write!(f, "Error while sending data from collecting sensor thread: {}", err),
+            SensorError::MaxLapAchieved => write!(f, "Max lap has been achieved")
         }
     }
 }
