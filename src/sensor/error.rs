@@ -1,17 +1,12 @@
 use std::convert::From;
 use std::fmt;
-use std::sync::mpsc::SendError;
-use sds011::{
-    Error as SDError,
-    Message
-};
+use sds011::Error as SDError;
 
 
 #[derive(Debug)]
 pub enum SensorError {
     StartupError,
     RuntimeError(String),
-    SendThreadError(String),
     MaxLapAchieved
 }
 
@@ -20,9 +15,8 @@ impl std::error::Error for SensorError {}
 impl fmt::Display for SensorError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            SensorError::StartupError => write!(f, "An error during the startup of the sensor"),
-            SensorError::RuntimeError(err) => write!(f, "An error occurred while collecting datas from the senso: {}", err) ,
-            SensorError::SendThreadError(err) => write!(f, "Error while sending data from collecting sensor thread: {}", err),
+            SensorError::StartupError => write!(f, "Error while getting sensor info"),
+            SensorError::RuntimeError(err) => write!(f, "Error while collecting datas from the sensor: {}", err) ,
             SensorError::MaxLapAchieved => write!(f, "Max lap has been achieved")
         }
     }
@@ -37,12 +31,6 @@ impl From<SDError> for SensorError {
             SDError::ReadError(reason) => SensorError::RuntimeError(reason),
             SDError::TooLongWorkTime => SensorError::StartupError
         }
-    }
-}
-
-impl From<SendError<Message>> for SensorError {
-    fn from(err: SendError<Message>) -> Self {
-        SensorError::SendThreadError(err.to_string())
     }
 }
 

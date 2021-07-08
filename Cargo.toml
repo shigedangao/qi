@@ -7,6 +7,9 @@ edition = "2018"
 
 [dependencies]
 sds011 = "0.2.1"
-prometheus = { version = "0.12.0", features = ["push"] }
+prometheus_exporter = "0.8"
+prometheus = "0.12.0"
 serde = { version = "1.0", features = ["derive"] }
 toml = "0.5"
+log = "0.4.0"
+env_logger = "0.8.4"
