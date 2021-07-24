@@ -18,6 +18,10 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
+    - name: install lib & toolchain
+      run: |
+        sudo apt install gcc-arm-linux-gnueabihf
+
     - name: Configure rustup for raspberry
       run: |
         rustup target add ${TARGET_ARCH}
