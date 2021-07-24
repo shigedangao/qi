@@ -4,6 +4,7 @@ on: [push]
 
 env:
   CARGO_TERM_COLOR: always
+  TARGET_ARCH: armv7-unknown-linux-gnueabihf
 
 jobs:
   tests:
@@ -12,3 +13,24 @@ jobs:
     - uses: actions/checkout@v2
     - name: Run tests
       run: cargo test --verbose
+  
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Configure rustup for raspberry
+      run: |
+        rustup target add ${TARGET_ARCH}
+    - name: Build release
+      run: cargo build --release --target=${TARGET_ARCH}
+    - name: zip release
+      run: zip -j qi-armv7-linux.zip target/release/qi
+    - name: create release
+      uses: marvinpinto/action-automatic-releases@latest
+      id: create_release
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        prerelease: false
+        draft: true
+        title: Qi pre-release
+        files: |
+          qi-armv7-linux.zip
