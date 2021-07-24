@@ -21,14 +21,13 @@ jobs:
     - name: install lib & toolchain
       run: |
         sudo apt install gcc-arm-linux-gnueabihf
-
     - name: Configure rustup for raspberry
       run: |
         rustup target add ${TARGET_ARCH}
     - name: Build release
       run: cargo build --release --target=${TARGET_ARCH}
     - name: zip release
-      run: zip -j qi-armv7-linux.zip target/release/qi
+      run: zip -j qi-armv7-linux.zip target/armv7-unknown-linux-gnueabihf/release/qi
     - name: create release
       uses: marvinpinto/action-automatic-releases@latest
       id: create_release
