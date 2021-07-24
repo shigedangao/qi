@@ -2,11 +2,12 @@ use prometheus_exporter::prometheus::register_gauge;
 use prometheus::Gauge;
 use crate::utils;
 
+// Easier to manipulate with the gauges...
+pub type Gauges = (Gauge, Gauge);
+
 /// Bootstrap the prometheus exporter
-///
-/// # Description
-/// Create a prometheus exporter instance which will listen to metrics created
-pub fn bootstrap() -> Result<(Gauge, Gauge), Box<dyn std::error::Error>> {
+///     Create a prometheus exporter instance which will listen to metrics created
+pub fn bootstrap() -> Result<Gauges, Box<dyn std::error::Error>> {
     debug!("Initializing prometheus exporter");
 
     let env = utils::load_env()?;
@@ -15,10 +16,8 @@ pub fn bootstrap() -> Result<(Gauge, Gauge), Box<dyn std::error::Error>> {
 }
 
 /// Create Gauge 
-///
-/// # Description
-/// Create the gauge which will be updated later
-fn create_gauge() -> Result<(Gauge, Gauge), Box<dyn std::error::Error>> {
+///     Create the gauge which will be updated later
+fn create_gauge() -> Result<Gauges, Box<dyn std::error::Error>> {
     debug!("Create prometheus probe");
 
     let pm25 = register_gauge!("particle_pm25", "set particle pm25")?;

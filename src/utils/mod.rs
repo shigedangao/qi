@@ -1,6 +1,5 @@
 use std::{env, fs};
 use serde::Deserialize;
-use toml;
 
 // Constant
 const ENV_FILE_PATH: &str = "env.toml";
@@ -32,7 +31,7 @@ pub fn load_env() -> Result<Env, Box<dyn std::error::Error>> {
 /// Create the env handle from the global env
 fn load_global_env() -> Result<Env, Box<dyn std::error::Error>> {
     debug!("Will use global env");
-    let host = env::var(HOST_KEY).unwrap_or("127.0.0.1:9091".to_owned());
+    let host = env::var(HOST_KEY).unwrap_or_else(|_| "127.0.0.1:9091".to_owned());
 
     Ok(Env {
         host

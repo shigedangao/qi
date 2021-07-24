@@ -3,7 +3,7 @@ use std::fmt;
 use sds011::Error as SDError;
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum SensorError {
     StartupError,
     RuntimeError(String),

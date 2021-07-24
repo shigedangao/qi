@@ -1,11 +1,14 @@
-use std::sync::{Arc, Mutex};
-
 #[macro_use]
 extern crate log;
 
 mod sensor;
 mod collector;
 mod utils;
+
+#[derive(Debug)]
+pub struct State {
+    pub lap: i32
+}
 
 fn main() {
     env_logger::init();
@@ -14,8 +17,7 @@ fn main() {
         Err(err) => panic!("{}", err)
     };
 
-    let lap = Arc::new(Mutex::new(0));
-    match sensor::run_sensor(lap, &gauges) {
+    match sensor::run_sensor(State { lap: 0 }, Some(gauges)) {
         Ok(()) => println!("Ok"),
         Err(err) => println!("{:?}", err)
     }
