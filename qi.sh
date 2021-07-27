@@ -1,7 +1,4 @@
 #/bin/bash
 
-# go to qi folder
-cd workspace/qi
-
-# run qi cmd in the background
-./qi &
+# run the qi cmd
+RUST_LOG=qi ./workspace/qi/qi
