@@ -19,9 +19,9 @@ const MAX_LAP: i32 = 10;
 ///
 /// # Arguments
 /// * `state` - State
-/// * `gauges` - &(Gauge, Gauge)
+/// * `gauges` - Option<Gauges>
 pub fn run_sensor(state: State, gauges: Option<Gauges>) -> Result<(), error::SensorError> {
-    debug!("Starting to listen to sensor");
+    info!("Starting to listen to sensor");
     if state.lap > MAX_LAP {
         return Err(error::SensorError::MaxLapAchieved);
     }
@@ -38,11 +38,11 @@ pub fn run_sensor(state: State, gauges: Option<Gauges>) -> Result<(), error::Sen
 /// # Arguments
 /// * `mut sensor`- SDS011
 /// * `state` - State
-/// * `gauges` - &(Gauge, Gauge)
+/// * `gauges` - Option<Gauges>
 fn get_data_from_sensor(mut sensor: SDS011, mut state: State, gauges: Option<Gauges>) -> Result<(), error::SensorError> {
     let gg = gauges.clone().expect("Expect to retrieve the gauges");
     let handle = thread::spawn(move || {
-        debug!("Listening to sensor in thread");
+        info!("Listening to sensor in thread");
         loop {
             match sensor.query() {
                 Ok(res) => {

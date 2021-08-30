@@ -19,6 +19,7 @@ pub struct Env {
 pub fn load_env() -> Result<Env, Box<dyn std::error::Error>> {
     let env_file = fs::read_to_string(ENV_FILE_PATH);
 
+    info!("Logging env...");
     match env_file {
         Ok(res) => toml::from_str(&res).map_err(|err| err.into()),
         Err(_) => load_global_env()
@@ -30,7 +31,7 @@ pub fn load_env() -> Result<Env, Box<dyn std::error::Error>> {
 /// # Description
 /// Create the env handle from the global env
 fn load_global_env() -> Result<Env, Box<dyn std::error::Error>> {
-    debug!("Will use global env");
+    info!("Will use global env");
     let host = env::var(HOST_KEY).unwrap_or_else(|_| "127.0.0.1:9091".to_owned());
 
     Ok(Env {
