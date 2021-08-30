@@ -30,4 +30,4 @@ Make the ```qi.sh``` executable with the command ```chmod +x qi.sh```
 
 ## Run
 
-Run the command ```sudo systemctl start qi``` to start 
+Run the command ```sudo systemctl start qi``` to start  
