@@ -35,7 +35,6 @@ pub fn run_sensor(state: State) -> Result<(), SensorError> {
 /// # Arguments
 /// * `mut sensor`- SDS011
 /// * `state` - State
-/// * `gauges` - Option<Gauges>
 fn get_data_from_sensor(mut sensor: SDS011, mut state: State) -> Result<(), SensorError> {
     let gg = state.gauges.clone();
     let handle = thread::spawn(move || {
