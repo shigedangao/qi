@@ -18,12 +18,12 @@ pub fn load_env() -> Env {
     
     if let Ok(env) = env_toml {
         if let Ok(t) = toml::from_str::<Env>(&env) {
-            info!("Will use local prometheus host {}", t.host);
+            info!("Will use host from local env {}", t.host);
             return t;
         }
     }
 
-    info!("Will use global prometheus host");
+    info!("Will host from global env");
     load_global_env()
 }
 
