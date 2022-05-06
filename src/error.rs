@@ -17,7 +17,7 @@ impl fmt::Display for SensorError {
             SensorError::StartupError => write!(f, "Unable to get sensor information. The sensor might not be plugged"),
             SensorError::RuntimeError(err) => write!(f, "Error occurred while collecting datas from the sensor: {err}") ,
             SensorError::MaxLapAchieved => write!(f, "Maximum retried has been achieved. Restart the program"),
-            SensorError::Prometheus(msg) => write!(f, "Error occurred with prometheus exporter {msg}")
+            SensorError::Prometheus(msg) => write!(f, "Error occurred with prometheus exporter: {msg}")
         }
     }
 }

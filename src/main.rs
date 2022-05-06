@@ -25,8 +25,8 @@ fn main() -> Result<()> {
         lap: 0,
         gauges
     }) {
-        Ok(()) => info!("Sensor has stopped but has not crashed"),
-        Err(err) => error!("Error while fetching datas {}", err)
+        Ok(()) => error!("Sensor scrapping has stopped"),
+        Err(err) => error!("{err}")
     }
 
     Ok(())
