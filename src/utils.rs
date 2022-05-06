@@ -10,31 +10,29 @@ pub struct Env {
     pub host: String
 }
 
-/// Load Env
-///
-/// # Description
 /// Load the environment variables in 2 way
 /// - If it find a env.toml will load the env.toml
 /// - Otherwise load from os environment variables
-pub fn load_env() -> Result<Env, Box<dyn std::error::Error>> {
-    let env_file = fs::read_to_string(ENV_FILE_PATH);
-
-    info!("Logging env...");
-    match env_file {
-        Ok(res) => toml::from_str(&res).map_err(|err| err.into()),
-        Err(_) => load_global_env()
+pub fn load_env() -> Env {
+    let env_toml = fs::read_to_string(ENV_FILE_PATH);
+    
+    if let Ok(env) = env_toml {
+        if let Ok(t) = toml::from_str::<Env>(&env) {
+            info!("Will use host from local env {}", t.host);
+            return t;
+        }
     }
+
+    info!("Will host from global env");
+    load_global_env()
 }
 
-/// Load Global Env
-///
-/// # Description
 /// Create the env handle from the global env
-fn load_global_env() -> Result<Env, Box<dyn std::error::Error>> {
+fn load_global_env() -> Env {
     info!("Will use global env");
     let host = env::var(HOST_KEY).unwrap_or_else(|_| "127.0.0.1:9091".to_owned());
 
-    Ok(Env {
+    Env {
         host
-    })
+    }
 }
