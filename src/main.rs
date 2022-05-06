@@ -6,23 +6,26 @@ extern crate log;
 mod sensor;
 mod collector;
 mod utils;
+mod error;
 
 #[derive(Debug)]
 pub struct State {
-    pub lap: i32
+    pub lap: i32,
+    pub gauges: collector::Gauges
 }
 
 fn main() -> Result<()> {
     color_eyre::install()?;
     env_logger::init();
-    
-    let gauges = match collector::bootstrap() {
-        Ok(res) => res,
-        Err(err) => panic!("{}", err)
-    };
 
-    match sensor::run_sensor(State { lap: 0 }, Some(gauges)) {
-        Ok(()) => info!("Sensor has stop but has not crashed"),
+    let env = utils::load_env();
+    let gauges = collector::bootstrap(&env).expect("Expect to get prometheus gauges");
+
+    match sensor::run_sensor(State {
+        lap: 0,
+        gauges
+    }) {
+        Ok(()) => info!("Sensor has stopped but has not crashed"),
         Err(err) => error!("Error while fetching datas {}", err)
     }
 

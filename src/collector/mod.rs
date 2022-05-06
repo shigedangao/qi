@@ -1,27 +1,40 @@
-use prometheus_exporter::prometheus::register_gauge;
-use prometheus::Gauge;
-use crate::utils;
+use std::net::SocketAddr;
+
+use prometheus_exporter::prometheus::{
+    core::{AtomicF64, GenericGauge},
+    register_gauge
+};
+use crate::utils::Env;
+use crate::error::SensorError;
 
 // Easier to manipulate with the gauges...
-pub type Gauges = (Gauge, Gauge);
+pub type Gauges = (GenericGauge::<AtomicF64>, GenericGauge::<AtomicF64>);
 
 /// Bootstrap the prometheus exporter
 ///     Create a prometheus exporter instance which will listen to metrics created
-pub fn bootstrap() -> Result<Gauges, Box<dyn std::error::Error>> {
+/// 
+/// # Arguments
+/// * `env` - &Env
+pub fn bootstrap(env: &Env) -> Result<Gauges, SensorError> {
     info!("Initializing prometheus exporter");
 
-    let env = utils::load_env()?;
-    prometheus_exporter::start(env.host.parse().unwrap())?;
-    create_gauge()
+    let addr = env.host.parse::<SocketAddr>()?;
+    create_gauge(addr)
 }
 
 /// Create Gauge 
 ///     Create the gauge which will be updated later
-fn create_gauge() -> Result<Gauges, Box<dyn std::error::Error>> {
+/// 
+/// # Arguments
+/// * `addr` - SocketAddr
+fn create_gauge(addr: SocketAddr) -> Result<Gauges, SensorError> {
     info!("Create prometheus probe");
 
     let pm25 = register_gauge!("particle_pm25", "set particle pm25")?;
     let pm10 = register_gauge!("particle_pm10", "set particle pm10")?;
+
+    // Start exporter
+    prometheus_exporter::start(addr)?;
 
     Ok((pm25, pm10))
 }
